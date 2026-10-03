@@ -21,6 +21,8 @@ echo "3/4 Neuen Stand uebertragen (git archive, LF)"
 git archive --format=tar HEAD | $SSH "tar xf - -C $DIR"
 $SSH "cd $DIR && sed -i 's/\r\$//' Dockerfile docker-compose.yml nginx.conf robots.txt *.html assets/*.js assets/*.css"
 
+$SSH "mkdir -p $DIR/counter-data"   # Bind-Mount-Ordner muss auf der Synology vorher existieren
+
 echo "4/4 Pruefsumme"
 L=$(git show HEAD:index.html | tr -d '\r' | md5sum | cut -d' ' -f1)
 R=$($SSH "md5sum $DIR/index.html" | cut -d' ' -f1)
