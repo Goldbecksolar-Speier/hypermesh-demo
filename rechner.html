@@ -29,24 +29,34 @@
   .btn{font:inherit;font-size:14px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;transition:box-shadow .2s,transform .2s}
   .btn:hover{box-shadow:0 6px 18px rgba(56,189,248,.28);transform:translateY(-1px)}
   .btn.go{background:linear-gradient(120deg,var(--green-deep),#0ea86e);color:#fff;border-color:transparent}
+  .btn.fly{border-color:#7c3aed;color:#5b21b6}
+  .btn.fly[aria-pressed="true"]{background:#7c3aed;color:#fff}
   .btn:focus-visible,.controls select:focus-visible,.controls input:focus-visible{outline:2px solid var(--blue-deep);outline-offset:2px}
-  .toggle{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
-  .toggle input{width:20px;height:20px;accent-color:var(--green-deep)}
   .hint{font-size:12px;color:var(--muted);margin:10px 0 0}
   .status{min-height:22px;font-size:13px;color:var(--text);margin:0 0 6px;font-variant-numeric:tabular-nums}
+  .chartwrap{background:#fff;border:1px solid #e2e6e3;border-radius:10px;padding:6px 4px 2px}
   svg.chart{display:block;width:100%;height:auto;touch-action:pan-y}
-  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:6px}
-  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
-  .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0}
+  .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-size:12px;color:#404040;margin:4px 0 8px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{display:inline-block;width:26px;height:9px;background:var(--c)}
+  .legend i.line{height:3px}
+  .legend .flyleg{display:none}
+  .flyon .legend .flyleg{display:inline-flex}
+  .blink{animation:blink 1s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.18}}
+  @media (prefers-reduced-motion:reduce){.blink{animation:none}.arrow i::before{animation:none}}
+  .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0}
   .res{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px}
   .res .k{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
-  .res .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
-  .res.main{border-color:var(--green-deep);background:linear-gradient(120deg,rgba(34,197,94,.10),rgba(56,189,248,.10))}
+  .res .v{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
   .res .s{font-size:12px;color:var(--muted)}
+  .res.fly{display:none;border-color:#7c3aed;background:linear-gradient(120deg,rgba(124,58,237,.08),rgba(34,197,94,.08))}
+  .flyon .res.fly{display:block}
+  .res.fly .v{color:#5b21b6}
+  .res.fly .badge{display:inline-block;margin-left:8px;font-size:13px;font-weight:700;color:#16a34a;animation:blink 1s ease-in-out infinite}
   .err{color:#b42318;font-size:13px;margin-top:8px}
   .assump{font-size:12.5px;color:var(--muted)}
   .assump li{margin-bottom:4px}
-  .sweep{opacity:0}
 </style>
 </head>
 <body>
@@ -57,11 +67,11 @@
   </div>
 </header>
 
-<main><div class="wrap rc">
+<main><div class="wrap rc" id="rc">
 <section class="topic" style="padding-top:36px">
   <div class="eyebrow">TRADING-RECHNER · PROTOTYP</div>
   <h1>Was bringt die Schwungmasse beim Trading?</h1>
-  <p class="lead">Ein Trading-Tag in 15-Minuten-Schritten, so wie die Preise an der Strombörse zackig verlaufen. Der Speicher fährt nach einem Setpoint. Mit einem Klick auf die Schwungmasse steigen die Zyklen von 2 auf 3 pro Tag, die Batterie bleibt gleich.</p>
+  <p class="lead">Ein Trading-Tag in 15-Minuten-Schritten, so wie die Preise an der Strombörse zackig verlaufen. Der Speicher fährt nach einem Setpoint. Mit einem Klick auf die Schwungmasse kommt ein dritter Zyklus pro Tag dazu, die Batterie bleibt gleich. Ein zweiter Klick schaltet sie wieder aus.</p>
 
   <h2 style="font-size:16px">So kommt der Setpoint zum Speicher</h2>
   <div class="chain" aria-label="Signalkette von der Börse bis zur Batterie">
@@ -100,43 +110,43 @@
         <input id="file" type="file" accept=".csv,.txt,text/csv">
       </label>
     </div>
-    <p class="hint">Die Datei wird nur in Ihrem Browser ausgewertet und nirgends hingeschickt. Format: <code>Zeit;Preis in €/MWh;Setpoint in kW</code>, 96 Zeilen (15 Minuten), die dritte Spalte ist optional (positiv = Einspeisen/Verkaufen, negativ = Laden), Dezimalkomma oder Punkt.</p>
+    <p class="hint">Die Datei wird nur in Ihrem Browser ausgewertet und nirgends hingeschickt. Format: <code>Zeit;Intraday-Preis €/MWh;Setpoint kW</code> mit 96 Zeilen (15 Minuten) oder 24 Zeilen (Stunden). Optional eine Spalte „Day-Ahead" (Kopfzeile) für die orange Linie; ohne sie wird der Stundenmittelwert genommen. Setpoint positiv = Einspeisen/Verkaufen, negativ = Laden. Dezimalkomma oder Punkt.</p>
     <div class="err" id="err" role="alert"></div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="main">
     <p class="status" id="status">Mit der Maus über die Kurve fahren, um Zeit, Preis und Setpoint zu sehen.</p>
-    <svg class="chart" id="chart" viewBox="0 0 960 520" role="img" aria-label="Preis, Setpoint und Ladestand über den Tag"></svg>
+    <div class="chartwrap"><svg class="chart" id="chart" viewBox="0 0 960 440" role="img" aria-label="Day-Ahead-Preis, Intraday-Preis und Erlösflüsse über den Tag"></svg></div>
     <div class="legend">
-      <span style="--c:#0f7a4f">Preis in €/MWh (15-min)</span>
-      <span style="--c:#f59e0b">Batterie entlädt</span>
-      <span style="--c:#38bdf8">Batterie lädt</span>
-      <span style="--c:#22c55e">Schwungmasse (Zusatzzyklus)</span>
-      <span style="--c:#6366f1">Ladestand Batterie</span>
+      <span><i style="--c:#548235"></i>IDA Buy</span>
+      <span><i style="--c:#000"></i>IDA Sell</span>
+      <span><i class="line" style="--c:#ffc000"></i>Day Ahead Spot (hourly)</span>
+      <span><i class="line" style="--c:#38bdf8"></i>Intraday Auction (quarter hourly)</span>
+      <span class="flyleg"><i style="--c:#7c3aed"></i>Schwungmasse Buy/Sell</span>
     </div>
+    <div class="chartwrap" style="margin-top:8px"><svg class="chart" id="chart2" viewBox="0 0 960 200" role="img" aria-label="Setpoint in kW und Ladestand der Batterie"></svg></div>
   </div>
 
-  <div class="panel">
-    <div style="display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;margin-bottom:14px">
-      <label class="toggle"><input type="checkbox" id="fly"> Schwungmasse zuschalten</label>
+  <div class="panel" id="sumpanel">
+    <div style="display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:14px">
       <button class="btn go" id="calc" type="button">Jetzt berechnen</button>
+      <button class="btn fly" id="fly" type="button" aria-pressed="false">Schwungmasse zuschalten</button>
       <span class="assump" id="cycles">Zyklen pro Tag: Batterie 2</span>
     </div>
     <div class="results">
-      <div class="res"><div class="k">Erlös Batterie (2 Zyklen)</div><div class="v" id="rB">–</div><div class="s">pro Tag, Beispiel</div></div>
-      <div class="res"><div class="k">Zusatz durch Schwungmasse</div><div class="v" id="rF">–</div><div class="s">dritter Zyklus</div></div>
-      <div class="res main"><div class="k">Mehrerlös</div><div class="v" id="rM">–</div><div class="s" id="rMs">gegenüber nur Batterie</div></div>
-      <div class="res"><div class="k">Zyklen pro Tag</div><div class="v" id="rC">2</div><div class="s">Batterie 2, mit Schwungmasse 3</div></div>
+      <div class="res"><div class="k">Tagesertrag Batterie</div><div class="v" id="rB">–</div><div class="s">2 Zyklen, Beispieltag</div></div>
+      <div class="res fly"><div class="k">Tagesertrag mit Schwungmasse</div><div class="v"><span id="rT">–</span><span class="badge" id="rM"></span></div><div class="s">dritter Zyklus: viele kleine Spitzen über die Schwungmasse</div></div>
     </div>
   </div>
 
   <div class="panel">
     <h2 style="font-size:15px;margin-bottom:6px">Annahmen dieser Beispielrechnung</h2>
     <ul class="assump">
-      <li>Die Preiskurve ist <strong>simuliert</strong> (typischer Tagesverlauf mit Mittagstief, Abendspitze und Zacken im 15-Minuten-Raster), keine echten Börsendaten. Mit einer eigenen CSV rechnet der Rechner mit Ihren Werten.</li>
-      <li>Die Auswahl des Brokers ordnet nur Ihre Messkurve zu. Sie sagt nichts über die Leistung eines Anbieters aus.</li>
+      <li>Die Preiskurven sind <strong>simuliert</strong> (Day-Ahead stündlich, Intraday-Auktion in Viertelstunden mit Zacken, Mittagstief und Abendspitze), keine echten Börsendaten. Mit einer eigenen CSV rechnet der Rechner mit Ihren Werten.</li>
+      <li>Die Balken zeigen den Erlösfluss je Viertelstunde in Euro (rechte Achse): Kauf als negativer, Verkauf als positiver Balken.</li>
       <li>Setpoint: positiv bedeutet Einspeisen bzw. Verkaufen, negativ bedeutet Laden aus dem Netz bei günstigen Preisen. Im Intraday-Handel wird er im 15-Minuten-Takt angepasst, für Systemdienstleistungen auch deutlich schneller. Das System gleicht den Setpoint dauernd mit dem Ladestand (SoC) ab, damit die Batterie nicht überladen oder tiefentladen wird.</li>
-      <li>Die Batterie fährt höchstens 2 volle Zyklen pro Tag (Wirkungsgrad 88 % über den Zyklus). Die Schwungmasse fährt einen zusätzlichen Zyklus mit der eingestellten Energie (Wirkungsgrad 95 %).</li>
+      <li>Die Batterie fährt höchstens 2 volle Zyklen pro Tag (Wirkungsgrad 88 % über den Zyklus). Die Schwungmasse nimmt die kleinen Spitzen der Viertelstunden-Kurve mit: wenig Energie (eingestellt), dafür viele schnelle Mini-Zyklen, zusammen ein zusätzlicher Zyklus pro Tag (Wirkungsgrad 95 %). Die Batterie bleibt dabei unverändert.</li>
+      <li>Die Auswahl des Brokers ordnet nur Ihre Messkurve zu. Sie sagt nichts über die Leistung eines Anbieters aus.</li>
       <li>Beispielrechnung, keine Zusage künftiger Erträge. Die endgültige Rechenregel folgt mit realen Messkurven.</li>
     </ul>
   </div>
@@ -149,169 +159,172 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var N = 96;                       // 15-Minuten-Schritte
-  var ETA_B = 0.88, ETA_F = 0.95;   // Wirkungsgrad ueber den Zyklus
-  var seed = 20261003;
-  var state = { prices: [], battSet: null, uploaded: false, uploadedSet: false, res: null, reveal: 1 };
+  var N = 96, ETA_B = 0.88, ETA_F = 0.95, seed = 20261003;
+  var state = { da: [], ida: [], battSet: null, uploadedSet: false, res: null, fly: false };
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---------- Simulierte Preiskurve (zackig, 15 min) ---------- */
+  /* ---------- Simulierte Kurven: Day-Ahead stündlich, Intraday-Auktion viertelstündlich ---------- */
   function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function gauss(h, m, s) { var d = (h - m) / s; return Math.exp(-d * d / 2); }
-  function makePrices(sd) {
-    var r = rng(sd), out = [], ar = 0, spikeAt = 70 + Math.floor(r() * 12), spike = 40 + r() * 70;
-    var eve = 150 + r() * 60, noon = 55 + r() * 40, base = 62 + r() * 18;
-    for (var q = 0; q < N; q++) {
-      var h = q / 4;
-      var v = base + 48 * gauss(h, 7.7, 1.5) + eve * gauss(h, 19.6, 1.9) - noon * gauss(h, 13.2, 2.7);
-      ar = 0.55 * ar + (r() - 0.5) * 26;            // zackiges Rauschen
-      v += ar + ((q % 4) - 1.5) * 3.2 * (r() > 0.4 ? 1 : -1); // Saegezahn an Stundenwechseln
-      if (q === spikeAt || q === spikeAt + 1) v += spike * (q === spikeAt ? 1 : 0.55);
-      out.push(Math.round(v * 100) / 100);
+  function makeDay(sd) {
+    var r = rng(sd), da = [], ida = [], ar = 0;
+    var base = 100 + r() * 14, noon = 58 + r() * 14, eve = 32 + r() * 18;
+    for (var h = 0; h < 24; h++) {
+      var v = base - 18 * gauss(h, 3.4, 2.2) + 20 * gauss(h, 6.8, 1.2) - noon * gauss(h, 13.0, 3.4) + eve * gauss(h, 20.6, 2.4) - 24 * gauss(h, 9.8, 1.4);
+      da.push(Math.round(v * 100) / 100);
     }
-    return out;
+    for (var q = 0; q < N; q++) {
+      var hh = Math.floor(q / 4), d = da[hh];
+      var vol = 6 + 26 * gauss(hh, 13.2, 3.4) + 14 * gauss(hh, 19.8, 2.4) + 9 * gauss(hh, 8.5, 1.8);   // viel Bewegung mittags und abends
+      ar = 0.45 * ar + (r() - 0.5) * 2 * vol;
+      var v2 = d + ar + (r() > 0.93 ? (r() - 0.35) * 70 : 0);
+      ida.push(Math.round(Math.max(-15, v2) * 100) / 100);
+    }
+    return { da: da, ida: ida };
   }
 
-  /* ---------- Optimierung: DP ueber Ladestand und Entlade-Menge ---------- */
-  // Einheit u = 15 min bei voller Leistung (0,25 MWh je MW). Ergebnis: Aktion je Viertelstunde (-1 laden, 0, +1 entladen)
+  /* ---------- Optimierung (Dynamische Programmierung) ---------- */
   function optimise(prices, S, cap, eta) {
     var D = cap, e1 = Math.sqrt(eta), NEG = -1e18;
-    var V = new Array((N + 1) * (S + 1) * (D + 1)).fill(NEG);
-    var A = new Int8Array((N + 1) * (S + 1) * (D + 1));
+    var V = new Array((N + 1) * (S + 1) * (D + 1)).fill(NEG), A = new Int8Array((N + 1) * (S + 1) * (D + 1));
     function ix(t, s, d) { return (t * (S + 1) + s) * (D + 1) + d; }
     V[ix(0, 0, 0)] = 0;
     for (var t = 0; t < N; t++) {
       var p = prices[t] * 0.25;
       for (var s = 0; s <= S; s++) for (var d = 0; d <= D; d++) {
         var cur = V[ix(t, s, d)]; if (cur === NEG) continue;
-        // nichts tun
         if (cur > V[ix(t + 1, s, d)]) { V[ix(t + 1, s, d)] = cur; A[ix(t + 1, s, d)] = 0; }
-        // laden
         if (s < S) { var vc = cur - p / e1; if (vc > V[ix(t + 1, s + 1, d)]) { V[ix(t + 1, s + 1, d)] = vc; A[ix(t + 1, s + 1, d)] = -1; } }
-        // entladen
         if (s > 0 && d < D) { var vd = cur + p * e1; if (vd > V[ix(t + 1, s - 1, d + 1)]) { V[ix(t + 1, s - 1, d + 1)] = vd; A[ix(t + 1, s - 1, d + 1)] = 1; } }
       }
     }
     var bs = 0, bd = 0, best = NEG;
     for (var s2 = 0; s2 <= S; s2++) for (var d2 = 0; d2 <= D; d2++) { var v = V[ix(N, s2, d2)]; if (v > best) { best = v; bs = s2; bd = d2; } }
     var act = new Array(N).fill(0), cs = bs, cd = bd;
-    for (var tt = N; tt > 0; tt--) {
-      var a = A[ix(tt, cs, cd)]; act[tt - 1] = a;
-      if (a === -1) cs -= 1; else if (a === 1) { cs += 1; cd -= 1; }
-    }
+    for (var tt = N; tt > 0; tt--) { var a = A[ix(tt, cs, cd)]; act[tt - 1] = a; if (a === -1) cs -= 1; else if (a === 1) { cs += 1; cd -= 1; } }
     return act;
   }
-  function revenue(prices, act, eta, P) {
-    var e1 = Math.sqrt(eta), sum = 0;
-    for (var t = 0; t < N; t++) { var a = act[t], p = prices[t] * 0.25 * P; sum += a > 0 ? p * a * e1 : p * a / e1; }
-    return sum;
+  // Erlösfluss je Viertelstunde in EUR (Kauf negativ, Verkauf positiv)
+  function flows(prices, act, eta, P) {
+    var e1 = Math.sqrt(eta);
+    return act.map(function (a, t) { var p = prices[t] * 0.25 * P; return a > 0 ? p * a * e1 : p * a / e1; });
   }
-  function soc(act, S) { var s = 0, o = []; for (var t = 0; t < N; t++) { s -= act[t]; s = Math.max(0, Math.min(S, s)); o.push(s / S); } return o; }
+  function sum(a) { return a.reduce(function (x, y) { return x + y; }, 0); }
+  function socOf(act, S) { var s = 0, o = []; for (var t = 0; t < N; t++) { s -= Math.round(act[t]); s = Math.max(0, Math.min(S, s)); o.push(s / S); } return o; }
 
   function compute() {
     var P = Math.max(0.1, +$('power').value || 1);
     var dur = Math.max(1, Math.min(4, Math.round(+$('dur').value || 2)));
-    var fwh = Math.max(50, +$('fwe').value || 500) / 1000;   // MWh je MW
+    var fwh = Math.max(50, +$('fwe').value || 500) / 1000;
     var S = dur * 4, Sf = Math.max(1, Math.round(fwh * 4));
-    var pr = state.prices;
-    var bAct;
-    if (state.uploadedSet && state.battSet) bAct = state.battSet;
-    else bAct = optimise(pr, S, 2 * S, ETA_B);               // 2 Zyklen Batterie
-    var fAct = optimise(pr, Sf, 1 * Sf, ETA_F);              // 1 Zusatzzyklus Schwungmasse
-    var rb = revenue(pr, bAct, ETA_B, P), rf = revenue(pr, fAct, ETA_F, P);
-    state.res = { bAct: bAct, fAct: fAct, rb: rb, rf: rf, S: S, Sf: Sf, P: P, soc: soc(bAct.map(function (x) { return Math.round(x); }), S) };
+    var bAct = (state.uploadedSet && state.battSet) ? state.battSet : optimise(state.ida, S, 2 * S, ETA_B);
+    // Schwungmasse: kleine Energie, aber viele schnelle Mini-Zyklen auf den kleinen Spitzen.
+    // Gesamtdurchsatz = ein zusätzlicher Batterie-Zyklus (dritter Zyklus pro Tag).
+    var fAct = optimise(state.ida, Sf, S, ETA_F);
+    var bF = flows(state.ida, bAct, ETA_B, P), fF = flows(state.ida, fAct, ETA_F, P);
+    state.res = { bAct: bAct, fAct: fAct, bF: bF, fF: fF, rb: sum(bF), rf: sum(fF), S: S, P: P, soc: socOf(bAct, S) };
   }
 
   /* ---------- Darstellung ---------- */
-  var W = 960, X0 = 56, X1 = 940;
-  var panels = { price: { y0: 28, y1: 210 }, set: { y0: 262, y1: 410 }, soc: { y0: 450, y1: 500 } };
-  function xAt(q) { return X0 + (X1 - X0) * q / (N - 1); }
+  var X0 = 62, X1 = 898, Y0 = 20, Y1 = 366;
+  function xq(q) { return X0 + (X1 - X0) * (q + 0.5) / N; }
   function fmt(v, d) { return v.toLocaleString('de-DE', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
   function eur(v) { return fmt(v, 0) + ' €'; }
 
-  function draw() {
-    var pr = state.prices, svg = $('chart'), res = state.res, fly = $('fly').checked;
-    var mn = Math.min.apply(null, pr), mx = Math.max.apply(null, pr);
-    mn = Math.floor((Math.min(mn, 0) - 5) / 20) * 20; mx = Math.ceil((mx + 5) / 20) * 20;
-    var pp = panels.price, ps = panels.set, pc = panels.soc;
-    function yP(v) { return pp.y1 - (pp.y1 - pp.y0) * (v - mn) / (mx - mn); }
-    var h = '';
-    // Gitter und Achsen Preis
-    var step = (mx - mn) > 240 ? 60 : 40;
-    for (var v = Math.ceil(mn / step) * step; v <= mx; v += step) {
-      h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + yP(v) + '" y2="' + yP(v) + '" stroke="rgba(15,122,79,.12)"/>' +
-           '<text x="' + (X0 - 8) + '" y="' + (yP(v) + 4) + '" text-anchor="end" font-size="11" fill="#4f6157">' + v + '</text>';
+  function drawMain() {
+    var svg = $('chart'), res = state.res, h = '';
+    var maxP = Math.max.apply(null, state.ida.concat(state.da)), L = Math.max(200, Math.ceil((maxP + 5) / 20) * 20);
+    var maxF = 0; if (res) { res.bF.concat(state.fly ? res.fF : []).forEach(function (v) { maxF = Math.max(maxF, Math.abs(v)); }); }
+    var R = Math.max(60, Math.ceil((maxF + 2) / 20) * 20);
+    function yL(v) { return Y1 - (Y1 - Y0) * v / L; }
+    function yR(v) { return (Y0 + Y1) / 2 - (Y1 - Y0) / 2 * v / R; }
+    // Achsen und Beschriftung
+    h += '<rect x="' + X0 + '" y="' + Y0 + '" width="' + (X1 - X0) + '" height="' + (Y1 - Y0) + '" fill="#fff" stroke="#bfbfbf"/>';
+    for (var v = 0; v <= L; v += 20) h += '<text x="' + (X0 - 8) + '" y="' + (yL(v) + 4) + '" text-anchor="end" font-size="12" fill="#595959">' + v + '</text>';
+    for (var r = -R; r <= R; r += 20) h += '<text x="' + (X1 + 8) + '" y="' + (yR(r) + 4) + '" text-anchor="start" font-size="12" fill="#595959">' + r + '</text>';
+    h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + yR(0) + '" y2="' + yR(0) + '" stroke="#7f7f7f" stroke-dasharray="2 3"/>';
+    for (var hr = 0; hr < 24; hr++) {
+      var xx = X0 + (X1 - X0) * hr / 24;
+      h += '<line x1="' + xx + '" x2="' + xx + '" y1="' + Y1 + '" y2="' + (Y1 + 5) + '" stroke="#7f7f7f"/><text x="' + xx + '" y="' + (Y1 + 19) + '" text-anchor="middle" font-size="12" fill="#595959">' + hr + '</text>';
     }
-    h += '<text x="' + X0 + '" y="16" font-size="12" font-weight="600" fill="#132018">Preis €/MWh (15-Minuten-Raster)</text>';
-    if (mn < 0) h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + yP(0) + '" y2="' + yP(0) + '" stroke="#132018" stroke-opacity=".35"/>';
-    // Zeitachse
-    for (var hr = 0; hr <= 24; hr += 3) {
-      var xx = X0 + (X1 - X0) * (hr * 4) / (N - 1);
-      h += '<line x1="' + xx + '" x2="' + xx + '" y1="' + pp.y0 + '" y2="' + pc.y1 + '" stroke="rgba(15,122,79,.07)"/>' +
-           '<text x="' + xx + '" y="' + (pc.y1 + 16) + '" text-anchor="middle" font-size="11" fill="#4f6157">' + (hr < 10 ? '0' : '') + (hr === 24 ? '24' : hr) + ':00</text>';
-    }
-    // Lade-/Entlade-Baender im Preisbild
-    var bw = (X1 - X0) / (N - 1);
+    h += '<text x="' + ((X0 + X1) / 2) + '" y="' + (Y1 + 40) + '" text-anchor="middle" font-size="13" fill="#595959">96 Viertelstunden</text>';
+    h += '<text transform="translate(16,' + ((Y0 + Y1) / 2) + ') rotate(-90)" text-anchor="middle" font-size="13" fill="#595959">Price in EUR/MWh</text>';
+    h += '<text transform="translate(' + (X1 + 52) + ',' + ((Y0 + Y1) / 2) + ') rotate(90)" text-anchor="middle" font-size="13" fill="#595959">Revenue Flows in EUR</text>';
+    // Day-Ahead als Stufenlinie, Intraday-Auktion als Zickzack
+    var d = '';
+    for (var k = 0; k < 24; k++) { var xa = X0 + (X1 - X0) * k / 24, xb = X0 + (X1 - X0) * (k + 1) / 24; d += (k ? ' L' : 'M') + xa.toFixed(1) + ',' + yL(state.da[k]).toFixed(1) + ' L' + xb.toFixed(1) + ',' + yL(state.da[k]).toFixed(1); }
+    h += '<path d="' + d + '" fill="none" stroke="#ffc000" stroke-width="3.2"/>';
+    var pts = state.ida.map(function (p, q) { return xq(q).toFixed(1) + ',' + yL(p).toFixed(1); }).join(' ');
+    h += '<polyline points="' + pts + '" fill="none" stroke="#38bdf8" stroke-width="2.6" stroke-linejoin="round"/>';
+    // Erlösbalken
+    var bw = (X1 - X0) / N;
     if (res) for (var q = 0; q < N; q++) {
-      var a = res.bAct[q];
-      if (a) h += '<rect x="' + (xAt(q) - bw / 2) + '" y="' + pp.y0 + '" width="' + bw + '" height="' + (pp.y1 - pp.y0) + '" fill="' + (a > 0 ? '#f59e0b' : '#38bdf8') + '" opacity=".14"/>';
+      var f = res.bF[q];
+      if (Math.abs(f) > 0.001) h += '<rect x="' + (xq(q) - bw * 0.2) + '" y="' + (f > 0 ? yR(f) : yR(0)) + '" width="' + (bw * 0.4) + '" height="' + Math.abs(yR(f) - yR(0)) + '" fill="' + (f > 0 ? '#000' : '#548235') + '"/>';
+      var g = state.fly ? res.fF[q] : 0;
+      if (Math.abs(g) > 0.001) h += '<rect class="blink" x="' + (xq(q) + bw * 0.22) + '" y="' + (g > 0 ? yR(g) : yR(0)) + '" width="' + (bw * 0.5) + '" height="' + Math.abs(yR(g) - yR(0)) + '" fill="#7c3aed"/>';
     }
-    // Zickzack-Linie
-    var pts = pr.map(function (p, q) { return xAt(q).toFixed(1) + ',' + yP(p).toFixed(1); }).join(' ');
-    h += '<polyline points="' + xAt(0) + ',' + pp.y1 + ' ' + pts + ' ' + xAt(N - 1) + ',' + pp.y1 + '" fill="rgba(15,122,79,.07)" stroke="none"/>';
-    h += '<polyline points="' + pts + '" fill="none" stroke="#0f7a4f" stroke-width="1.8" stroke-linejoin="round"/>';
-    // Setpoint-Balken
-    var P = res ? res.P : (+$('power').value || 1), kw = P * 1000;
-    var mid = (ps.y0 + ps.y1) / 2, half = (ps.y1 - ps.y0) / 2 - 6;
-    h += '<text x="' + X0 + '" y="' + (ps.y0 - 10) + '" font-size="12" font-weight="600" fill="#132018">Setpoint in kW (positiv = einspeisen/verkaufen, negativ = laden)</text>';
-    [-1, 0, 1].forEach(function (f) {
-      var yy = mid - f * half;
-      h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + yy + '" y2="' + yy + '" stroke="rgba(15,122,79,' + (f === 0 ? .35 : .12) + ')"/>' +
-           '<text x="' + (X0 - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="#4f6157">' + fmt(f * kw, 0) + '</text>';
-    });
-    if (res) for (var q2 = 0; q2 < N; q2++) {
-      var b = res.bAct[q2];
-      if (b) h += '<rect x="' + (xAt(q2) - bw * .42) + '" y="' + (b > 0 ? mid - half * b : mid) + '" width="' + (bw * .84) + '" height="' + Math.abs(half * b) + '" fill="' + (b > 0 ? '#f59e0b' : '#38bdf8') + '"/>';
-      var f2 = fly ? res.fAct[q2] : 0;
-      if (f2) h += '<rect x="' + (xAt(q2) - bw * .2) + '" y="' + (f2 > 0 ? mid - half * f2 : mid) + '" width="' + (bw * .4) + '" height="' + Math.abs(half * f2) + '" fill="#16a34a"/>';
-    }
-    // Ladestand
-    h += '<text x="' + X0 + '" y="' + (pc.y0 - 8) + '" font-size="12" font-weight="600" fill="#132018">Ladestand Batterie</text>';
-    if (res) {
-      var sp = res.soc.map(function (s, q) { return xAt(q).toFixed(1) + ',' + (pc.y1 - (pc.y1 - pc.y0) * s).toFixed(1); }).join(' ');
-      h += '<polyline points="' + sp + '" fill="none" stroke="#6366f1" stroke-width="1.8"/>';
-    }
-    h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + pc.y1 + '" y2="' + pc.y1 + '" stroke="rgba(15,122,79,.3)"/>';
-    // Hover-Linie und Abdeckung fuer die Berechnungs-Animation
-    h += '<line id="hov" x1="0" x2="0" y1="' + pp.y0 + '" y2="' + pc.y1 + '" stroke="#0284c7" stroke-width="1" visibility="hidden"/>';
-    h += '<rect id="cover" x="' + X0 + '" y="0" width="0" height="' + (pc.y1 + 24) + '" fill="#f3fbf6" opacity="0"/>';
+    h += '<line id="hov" x1="0" x2="0" y1="' + Y0 + '" y2="' + Y1 + '" stroke="#0284c7" stroke-width="1" visibility="hidden"/>';
+    h += '<rect id="cover" x="' + X0 + '" y="' + (Y0 - 4) + '" width="0" height="' + (Y1 - Y0 + 8) + '" fill="#fff" opacity="0"/>';
     svg.innerHTML = h;
   }
+  function drawSet() {
+    var svg = $('chart2'), res = state.res, h = '', x0 = X0, x1 = X1, y0 = 28, y1 = 150;
+    var P = res ? res.P : (+$('power').value || 1), kw = P * 1000, mid = (y0 + y1) / 2, half = (y1 - y0) / 2;
+    h += '<text x="' + x0 + '" y="14" font-size="12" font-weight="600" fill="#333">Setpoint in kW (positiv = einspeisen/verkaufen, negativ = laden) und Ladestand der Batterie</text>';
+    h += '<rect x="' + x0 + '" y="' + y0 + '" width="' + (x1 - x0) + '" height="' + (y1 - y0) + '" fill="#fff" stroke="#bfbfbf"/>';
+    [-1, 0, 1].forEach(function (f) { var yy = mid - f * half; h += '<text x="' + (x0 - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="#595959">' + fmt(f * kw, 0) + '</text>'; });
+    h += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + mid + '" y2="' + mid + '" stroke="#7f7f7f" stroke-dasharray="2 3"/>';
+    var bw = (x1 - x0) / N;
+    if (res) {
+      for (var q = 0; q < N; q++) {
+        var a = res.bAct[q];
+        if (a) h += '<rect x="' + (xq(q) - bw * 0.3) + '" y="' + (a > 0 ? mid - half * a : mid) + '" width="' + (bw * 0.6) + '" height="' + Math.abs(half * a) + '" fill="' + (a > 0 ? '#f59e0b' : '#38bdf8') + '"/>';
+        var f = state.fly ? res.fAct[q] : 0;
+        if (f) h += '<rect class="blink" x="' + (xq(q) + bw * 0.05) + '" y="' + (f > 0 ? mid - half * f : mid) + '" width="' + (bw * 0.3) + '" height="' + Math.abs(half * f) + '" fill="#7c3aed"/>';
+      }
+      var sp = res.soc.map(function (s, q) { return xq(q).toFixed(1) + ',' + (y1 - (y1 - y0) * s).toFixed(1); }).join(' ');
+      h += '<polyline points="' + sp + '" fill="none" stroke="#6366f1" stroke-width="1.6" opacity=".85"/>';
+    }
+    svg.innerHTML = h;
+  }
+  function draw() { drawMain(); drawSet(); }
 
-  function showResults() {
-    var res = state.res, fly = $('fly').checked;
-    $('cycles').textContent = 'Zyklen pro Tag: Batterie 2' + (fly ? ' + Schwungmasse 1 = 3' : '');
-    if (!res) return;
+  /* ---------- Ergebnis: Tagessumme, mit Klick ein/aus ---------- */
+  var numTimer = 0;
+  function countUp(el, from, to, ms) {
+    cancelAnimationFrame(numTimer);
+    if (reduce) { el.textContent = eur(to); return; }
+    var t0 = performance.now();
+    (function tick(now) { var k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = eur(from + (to - from) * e); if (k < 1) numTimer = requestAnimationFrame(tick); })(t0);
+  }
+  function showResults(animate) {
+    var res = state.res; if (!res) return;
+    $('rc').classList.toggle('flyon', state.fly);
+    $('cycles').textContent = 'Zyklen pro Tag: Batterie 2' + (state.fly ? ' + Schwungmasse 1 = 3' : '');
     $('rB').textContent = eur(res.rb);
-    $('rF').textContent = fly ? eur(res.rf) : '–';
-    $('rM').textContent = fly ? '+' + eur(res.rf) : '–';
-    $('rMs').textContent = fly ? 'gegenüber nur Batterie (' + fmt(res.rb ? res.rf / res.rb * 100 : 0, 1) + ' %)' : 'Schwungmasse zuschalten';
-    $('rC').textContent = fly ? '3' : '2';
+    if (state.fly) {
+      $('rM').textContent = '+' + eur(res.rf);
+      if (animate) countUp($('rT'), res.rb, res.rb + res.rf, 1300); else $('rT').textContent = eur(res.rb + res.rf);
+    }
+  }
+  function setFly(on) {
+    state.fly = on; $('fly').setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('fly').textContent = on ? 'Schwungmasse ausschalten' : 'Schwungmasse zuschalten';
+    draw(); showResults(true);
   }
 
   var rafId = 0;
   function runCalc(animate) {
-    $('err').textContent = '';
-    compute(); draw(); showResults();
+    $('err').textContent = ''; compute(); draw(); showResults(false);
     var cover = $('cover');
-    if (!animate || !cover || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    if (!animate || !cover || reduce) return;
     cancelAnimationFrame(rafId);
-    var t0 = performance.now(), dur = 2600, totalW = X1 - X0;
-    cover.setAttribute('opacity', '.97');
-    $('chart').querySelectorAll('rect[fill="#f59e0b"],rect[fill="#38bdf8"],rect[fill="#16a34a"]').forEach(function () {});
+    var t0 = performance.now(), dur = 2600, w = X1 - X0;
+    cover.setAttribute('opacity', '1');
     (function tick(now) {
       var k = Math.min(1, (now - t0) / dur);
-      var w = totalW * (1 - k);
-      cover.setAttribute('x', X0 + totalW * k); cover.setAttribute('width', Math.max(0, w + 10));
+      cover.setAttribute('x', X0 + w * k); cover.setAttribute('width', Math.max(0, w * (1 - k) + 2));
       if (k < 1) rafId = requestAnimationFrame(tick); else cover.setAttribute('opacity', '0');
     })(t0);
   }
@@ -322,36 +335,41 @@
     var lines = text.replace(/\r/g, '').split('\n').filter(function (l) { return l.trim(); });
     if (!lines.length) throw new Error('Die Datei ist leer.');
     var del = (lines[0].match(/;/g) || []).length ? ';' : ((lines[0].match(/\t/g) || []).length ? '\t' : ',');
-    var rows = lines.map(function (l) { return l.split(del); });
-    if (isNaN(num(rows[0][1]))) rows.shift();                       // Kopfzeile
-    var prices = [], sets = [], hasSet = rows.length && rows[0].length > 2 && !isNaN(num(rows[0][2]));
-    rows.forEach(function (r) { var p = num(r[1]); if (!isNaN(p)) { prices.push(p); if (hasSet) sets.push(num(r[2])); } });
-    if (prices.length === 24) { prices = [].concat.apply([], prices.map(function (p) { return [p, p, p, p]; })); if (hasSet) sets = [].concat.apply([], sets.map(function (p) { return [p, p, p, p]; })); }
-    if (prices.length !== N) throw new Error('Erwartet werden 96 Zeilen (15 Minuten) oder 24 Zeilen (Stunden), gefunden: ' + prices.length + '.');
-    return { prices: prices, sets: hasSet ? sets : null };
+    var rows = lines.map(function (l) { return l.split(del); }), head = null;
+    if (isNaN(num(rows[0][1]))) head = rows.shift().map(function (x) { return x.toLowerCase(); });
+    var iDa = -1, iSet = -1;
+    if (head) head.forEach(function (c, i) { if (/day|^da$|dayahead/.test(c)) iDa = i; if (/setpoint|sollwert|kw/.test(c)) iSet = i; });
+    if (iSet < 0 && iDa < 0 && rows[0].length > 2 && !isNaN(num(rows[0][2]))) iSet = 2;
+    var ida = [], da = [], set = [];
+    rows.forEach(function (r) { var p = num(r[1]); if (!isNaN(p)) { ida.push(p); if (iDa > 0) da.push(num(r[iDa])); if (iSet > 0) set.push(num(r[iSet])); } });
+    function x4(a) { return [].concat.apply([], a.map(function (p) { return [p, p, p, p]; })); }
+    if (ida.length === 24) { ida = x4(ida); if (da.length) da = x4(da); if (set.length) set = x4(set); }
+    if (ida.length !== N) throw new Error('Erwartet werden 96 Zeilen (15 Minuten) oder 24 Zeilen (Stunden), gefunden: ' + ida.length + '.');
+    var daH = [];
+    for (var h = 0; h < 24; h++) { var a = da.length ? da[h * 4] : (ida[h * 4] + ida[h * 4 + 1] + ida[h * 4 + 2] + ida[h * 4 + 3]) / 4; daH.push(a); }
+    return { ida: ida, da: daH, set: set.length ? set : null };
   }
 
   /* ---------- Hover ---------- */
   function onMove(ev) {
-    var svg = $('chart'), r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
-    var q = Math.round((x - X0) / (X1 - X0) * (N - 1)); if (q < 0 || q > N - 1) return;
-    var hov = $('hov'); hov.setAttribute('x1', xAt(q)); hov.setAttribute('x2', xAt(q)); hov.setAttribute('visibility', 'visible');
+    var svg = $('chart'), r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * 960;
+    var q = Math.floor((x - X0) / (X1 - X0) * N); if (q < 0 || q > N - 1) return;
+    var hov = $('hov'); if (hov) { hov.setAttribute('x1', xq(q)); hov.setAttribute('x2', xq(q)); hov.setAttribute('visibility', 'visible'); }
     var hh = Math.floor(q / 4), mm = (q % 4) * 15, res = state.res, P = res ? res.P : (+$('power').value || 1);
-    var t = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
-    var s = t + ' Uhr · Preis ' + fmt(state.prices[q], 2) + ' €/MWh';
+    var s = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm + ' Uhr · Day-Ahead ' + fmt(state.da[hh], 2) + ' · Intraday ' + fmt(state.ida[q], 2) + ' €/MWh';
     if (res) {
-      var b = res.bAct[q] * P * 1000, f = $('fly').checked ? res.fAct[q] * P * 1000 : 0;
-      s += ' · Setpoint Batterie ' + (b > 0 ? '+' : '') + fmt(b, 0) + ' kW';
-      if ($('fly').checked) s += ' · Schwungmasse ' + (f > 0 ? '+' : '') + fmt(f, 0) + ' kW';
+      var b = res.bAct[q] * P * 1000; s += ' · Setpoint Batterie ' + (b > 0 ? '+' : '') + fmt(b, 0) + ' kW';
+      if (state.fly) { var f = res.fAct[q] * P * 1000; s += ' · Schwungmasse ' + (f > 0 ? '+' : '') + fmt(f, 0) + ' kW'; }
     }
     $('status').textContent = s;
   }
 
   /* ---------- Start ---------- */
-  state.prices = makePrices(seed);
-  $('newday').addEventListener('click', function () { seed += 7919; state.prices = makePrices(seed); state.uploaded = false; state.uploadedSet = false; state.battSet = null; $('file').value = ''; runCalc(false); });
+  function newDay() { var d = makeDay(seed); state.da = d.da; state.ida = d.ida; state.uploadedSet = false; state.battSet = null; }
+  newDay();
+  $('newday').addEventListener('click', function () { seed += 7919; newDay(); $('file').value = ''; runCalc(false); });
   $('calc').addEventListener('click', function () { runCalc(true); });
-  $('fly').addEventListener('change', function () { draw(); showResults(); });
+  $('fly').addEventListener('click', function () { setFly(!state.fly); });
   ['power', 'dur', 'fwe'].forEach(function (id) { $(id).addEventListener('change', function () { runCalc(false); }); });
   $('broker').addEventListener('change', function () { $('status').textContent = 'Messkurve wird dem Broker „' + $('broker').value + '" zugeordnet (nur Beschriftung).'; });
   $('file').addEventListener('change', function (e) {
@@ -359,18 +377,19 @@
     var rd = new FileReader();
     rd.onload = function () {
       try {
-        var d = parseCsv(String(rd.result));
-        state.prices = d.prices; state.uploaded = true;
-        var P = Math.max(0.1, +$('power').value || 1);
-        if (d.sets) { state.uploadedSet = true; state.battSet = d.sets.map(function (k) { return Math.max(-1, Math.min(1, k / (P * 1000))); }); } else { state.uploadedSet = false; state.battSet = null; }
+        var d = parseCsv(String(rd.result)), P = Math.max(0.1, +$('power').value || 1);
+        state.ida = d.ida; state.da = d.da;
+        if (d.set) { state.uploadedSet = true; state.battSet = d.set.map(function (k) { return Math.max(-1, Math.min(1, k / (P * 1000))); }); } else { state.uploadedSet = false; state.battSet = null; }
         runCalc(true);
         $('status').textContent = 'Eigene Messkurve geladen (' + f.name + '), Broker: ' + $('broker').value + '. Die Datei bleibt auf diesem Gerät.';
       } catch (er) { $('err').textContent = er.message; }
     };
     rd.readAsText(f);
   });
-  $('chart').addEventListener('mousemove', onMove);
-  $('chart').addEventListener('touchmove', function (e) { if (e.touches[0]) onMove(e.touches[0]); }, { passive: true });
+  ['chart', 'chart2'].forEach(function (id) {
+    $(id).addEventListener('mousemove', onMove);
+    $(id).addEventListener('touchmove', function (e) { if (e.touches[0]) onMove(e.touches[0]); }, { passive: true });
+  });
   runCalc(false);
 })();
 </script>
