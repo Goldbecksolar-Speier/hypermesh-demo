@@ -1,0 +1,53 @@
+:root{
+  --bg:#080c12;
+  --surface:#10161f;
+  --border:#1f2a38;
+  --text:#e6edf5;
+  --muted:#8fa0b3;
+  --accent:#38bdf8;
+  --green:#22c55e;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid var(--border)}
+.brand{font-weight:600;font-size:17px;color:var(--text)}
+.brand span{color:var(--green)}
+.top nav{display:flex;gap:18px;font-size:14px;flex-wrap:wrap}
+
+.intro{padding:56px 0 28px}
+.eyebrow{font-size:12px;letter-spacing:2px;color:var(--green);font-weight:600;margin-bottom:10px}
+h1{font-size:34px;line-height:1.25;margin:0 0 14px}
+h2{font-size:20px;margin:0 0 8px}
+.intro p,.lead{color:var(--muted);max-width:680px;margin:0}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;padding:12px 0 40px}
+.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;color:var(--text);transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
+.card video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;pointer-events:none}
+.card .body{padding:16px 18px 18px}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+.card .tag{display:inline-block;margin-top:10px;font-size:12px;color:var(--green)}
+.card.soon{opacity:.55;border-style:dashed}
+.card.soon:hover{transform:none;border-color:var(--border)}
+.card.soon .body{padding:22px 18px}
+
+.page{padding:40px 0 20px}
+.player{margin:24px 0 8px}
+.player video{display:block;width:100%;border-radius:14px;border:1px solid var(--border);background:#000}
+.caption{font-size:12px;color:var(--muted);margin:10px 0 0}
+.points{padding-left:20px;color:var(--muted);max-width:720px}
+.points li{margin-bottom:6px}
+.pager{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:36px 0;font-size:14px}
+
+footer{border-top:1px solid var(--border);padding:22px 0 36px;font-size:12px;color:var(--muted)}
+footer a{color:var(--muted);text-decoration:underline}
+
+@media (max-width:640px){
+  h1{font-size:26px}
+  .intro{padding-top:36px}
+}

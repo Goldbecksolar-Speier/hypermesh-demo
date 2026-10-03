@@ -1,0 +1,12 @@
+# hypermesh-demo — Docker Compose Stack fuer Synology NAS (getrennt von hyper-mesh-plattform und BESS)
+# Start:   docker compose up -d --build
+# Logs:    docker compose logs -f
+# Stop:    docker compose down
+services:
+
+  frontend:
+    build: .
+    container_name: hypermesh-demo
+    restart: unless-stopped
+    ports:
+      - "8095:80"                  # NAS-Port 8095 -> Container 80 (bei Bedarf anpassen)
