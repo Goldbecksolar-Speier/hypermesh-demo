@@ -23,6 +23,6 @@ Dann `http://localhost:8769/`.
 ```bash
 docker compose up -d --build
 ```
-Danach im DSM: Reverse-Proxy `hypermesh.cloud` (443) → `http://localhost:8095`, Zertifikat Let's Encrypt. DNS bei Strato: A-Record `@` auf die öffentliche IP, CNAME `www` auf `hypermesh.cloud`.
+Danach im DSM: Reverse-Proxy `www.hypermesh.cloud` (443) → `http://localhost:8095`, Zertifikat Let's Encrypt. DNS bei Strato: CNAME `www` → `graben54.goip.de` (DynDNS, wie bei `www.speier-solar.de`); die Domain ohne `www` kann kein CNAME sein, dort eine Weiterleitung auf `www.hypermesh.cloud` einrichten. Reverse-Proxy-Hostname und Zertifikat: `www.hypermesh.cloud`.
 
 Stand: lokal gebaut, nicht gepusht, nicht auf dem NAS.
