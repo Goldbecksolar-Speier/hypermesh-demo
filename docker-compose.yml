@@ -10,3 +10,10 @@ services:
     restart: unless-stopped
     ports:
       - "8095:80"                  # NAS-Port 8095 -> Container 80 (bei Bedarf anpassen)
+
+  counter:
+    build: ./counter
+    container_name: hypermesh-demo-counter
+    restart: unless-stopped
+    volumes:
+      - ./counter-data:/data       # Zaehlerstand bleibt bei Updates erhalten

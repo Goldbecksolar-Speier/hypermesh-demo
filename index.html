@@ -168,6 +168,8 @@
   <div class="wrap">Konzeptdarstellungen als Animation, Zahlen sind Beispiele und keine Zusage. &middot; <a href="impressum.html">Impressum</a> &middot; <a href="datenschutz.html">Datenschutz</a></div>
 </footer>
 
+<div id="vc" style="position:fixed;right:12px;bottom:8px;font-size:11px;opacity:.55;pointer-events:none;color:inherit"></div>
+<script>fetch('/api/count',{method:'POST'}).then(function(r){return r.json()}).then(function(d){document.getElementById('vc').textContent='Aufrufe: '+d.total.toLocaleString('de-DE')}).catch(function(){});</script>
 <script src="assets/player.js"></script>
 <script src="assets/intro.js"></script>
 </body>
