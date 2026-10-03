@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>Trading-Rechner mit Schwungmasse</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .rc h1{font-size:clamp(24px,3.4vw,34px);line-height:1.2;margin:0 0 8px}
+  .rc .lead{margin-bottom:20px}
+  .chain{display:flex;align-items:stretch;gap:0;flex-wrap:nowrap;margin:8px 0 26px}
+  .node{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;min-width:0;flex:1 1 0;font-size:13px;line-height:1.35}
+  .node b{display:block;font-size:13px;color:var(--text)}
+  .node span{color:var(--muted);font-size:12px}
+  .node.hl{border-color:var(--green-deep);box-shadow:0 6px 20px var(--green-glow)}
+  .arrow{flex:0 0 74px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10.5px;color:var(--blue-deep);text-align:center;line-height:1.2;position:relative;padding:0 2px}
+  .arrow i{display:block;position:relative;height:2px;width:100%;background:rgba(2,132,199,.35);margin-top:4px}
+  .arrow i::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid rgba(2,132,199,.7);border-right:0}
+  .arrow i::before{content:"";position:absolute;left:0;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--blue);animation:flow 2.4s linear infinite}
+  @keyframes flow{from{left:0;opacity:1}to{left:calc(100% - 8px);opacity:.2}}
+  .nb .t{display:inline!important}
+  @media (max-width:900px){.chain{flex-direction:column}.node{flex:0 0 auto}.arrow{flex:0 0 40px;flex-direction:row;gap:8px}.arrow i{width:2px;height:24px;margin:0}.arrow i::after{right:-4px;top:auto;bottom:-2px;border:5px solid transparent;border-top:7px solid rgba(2,132,199,.7);border-bottom:0}.arrow i::before{display:none}}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;box-shadow:0 10px 30px rgba(15,122,79,.06)}
+  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 16px;align-items:end}
+  .controls label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+  .controls select,.controls input[type=number]{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text)}
+  .btn{font:inherit;font-size:14px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;transition:box-shadow .2s,transform .2s}
+  .btn:hover{box-shadow:0 6px 18px rgba(56,189,248,.28);transform:translateY(-1px)}
+  .btn.go{background:linear-gradient(120deg,var(--green-deep),#0ea86e);color:#fff;border-color:transparent}
+  .btn:focus-visible,.controls select:focus-visible,.controls input:focus-visible{outline:2px solid var(--blue-deep);outline-offset:2px}
+  .toggle{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+  .toggle input{width:20px;height:20px;accent-color:var(--green-deep)}
+  .hint{font-size:12px;color:var(--muted);margin:10px 0 0}
+  .status{min-height:22px;font-size:13px;color:var(--text);margin:0 0 6px;font-variant-numeric:tabular-nums}
+  svg.chart{display:block;width:100%;height:auto;touch-action:pan-y}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:6px}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+  .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0}
+  .res{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+  .res .k{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .res .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+  .res.main{border-color:var(--green-deep);background:linear-gradient(120deg,rgba(34,197,94,.10),rgba(56,189,248,.10))}
+  .res .s{font-size:12px;color:var(--muted)}
+  .err{color:#b42318;font-size:13px;margin-top:8px}
+  .assump{font-size:12.5px;color:var(--muted)}
+  .assump li{margin-bottom:4px}
+  .sweep{opacity:0}
+</style>
+</head>
+<body>
+<header class="topnav">
+  <div class="in">
+    <a class="brand" href="index.html#top">hyper<span>mesh</span></a>
+    <nav class="nbs" aria-label="Seiten"><a class="nb ext" href="index.html#vermittlung" title="Zur Übersicht"><span class="t">← Zur Übersicht</span></a></nav>
+  </div>
+</header>
+
+<main><div class="wrap rc">
+<section class="topic" style="padding-top:36px">
+  <div class="eyebrow">TRADING-RECHNER · PROTOTYP</div>
+  <h1>Was bringt die Schwungmasse beim Trading?</h1>
+  <p class="lead">Ein Trading-Tag in 15-Minuten-Schritten, so wie die Preise an der Strombörse zackig verlaufen. Der Speicher fährt nach einem Setpoint. Mit einem Klick auf die Schwungmasse steigen die Zyklen von 2 auf 3 pro Tag, die Batterie bleibt gleich.</p>
+
+  <h2 style="font-size:16px">So kommt der Setpoint zum Speicher</h2>
+  <div class="chain" aria-label="Signalkette von der Börse bis zur Batterie">
+    <div class="node"><b>Strombörse</b><span>EPEX Spot / Intraday</span></div>
+    <div class="arrow">Preise &amp;<br>Algorithmus<i></i></div>
+    <div class="node"><b>Broker / Virtuelles Kraftwerk (VPP)</b><span>optimiert die Fahrweise</span></div>
+    <div class="arrow">Setpoint-Befehl<br>z. B. +100 kW<i></i></div>
+    <div class="node"><b>Lokales EMS / EZA-Regler</b><span>vor Ort am Standort</span></div>
+    <div class="arrow">Register-Befehl<br>Modbus / REST<i></i></div>
+    <div class="node"><b>Wechselrichter</b><span>→ Batterie-Zellen</span></div>
+    <div class="arrow">+ Schwungmasse<i></i></div>
+    <div class="node hl"><b>Schwungmasse</b><span>schneller Zusatzzyklus</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="controls">
+      <label>Broker, der Ihren Speicher steuert
+        <select id="broker">
+          <option>Entrix</option>
+          <option>Enspired</option>
+          <option>The Mobility House</option>
+          <option>Anderer Broker</option>
+        </select>
+      </label>
+      <label>Leistung (MW)
+        <input id="power" type="number" min="0.1" max="100" step="0.1" value="1">
+      </label>
+      <label>Dauer des Speichers (Stunden)
+        <input id="dur" type="number" min="1" max="4" step="1" value="2">
+      </label>
+      <label>Schwungmasse-Energie (kWh je MW)
+        <input id="fwe" type="number" min="50" max="1000" step="50" value="500">
+      </label>
+      <button class="btn" id="newday" type="button">Neuer Beispieltag</button>
+      <label>Eigene Messkurve laden (CSV)
+        <input id="file" type="file" accept=".csv,.txt,text/csv">
+      </label>
+    </div>
+    <p class="hint">Die Datei wird nur in Ihrem Browser ausgewertet und nirgends hingeschickt. Format: <code>Zeit;Preis in €/MWh;Setpoint in kW</code>, 96 Zeilen (15 Minuten), die dritte Spalte ist optional (positiv = Einspeisen/Verkaufen, negativ = Laden), Dezimalkomma oder Punkt.</p>
+    <div class="err" id="err" role="alert"></div>
+  </div>
+
+  <div class="panel">
+    <p class="status" id="status">Mit der Maus über die Kurve fahren, um Zeit, Preis und Setpoint zu sehen.</p>
+    <svg class="chart" id="chart" viewBox="0 0 960 520" role="img" aria-label="Preis, Setpoint und Ladestand über den Tag"></svg>
+    <div class="legend">
+      <span style="--c:#0f7a4f">Preis in €/MWh (15-min)</span>
+      <span style="--c:#f59e0b">Batterie entlädt</span>
+      <span style="--c:#38bdf8">Batterie lädt</span>
+      <span style="--c:#22c55e">Schwungmasse (Zusatzzyklus)</span>
+      <span style="--c:#6366f1">Ladestand Batterie</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;margin-bottom:14px">
+      <label class="toggle"><input type="checkbox" id="fly"> Schwungmasse zuschalten</label>
+      <button class="btn go" id="calc" type="button">Jetzt berechnen</button>
+      <span class="assump" id="cycles">Zyklen pro Tag: Batterie 2</span>
+    </div>
+    <div class="results">
+      <div class="res"><div class="k">Erlös Batterie (2 Zyklen)</div><div class="v" id="rB">–</div><div class="s">pro Tag, Beispiel</div></div>
+      <div class="res"><div class="k">Zusatz durch Schwungmasse</div><div class="v" id="rF">–</div><div class="s">dritter Zyklus</div></div>
+      <div class="res main"><div class="k">Mehrerlös</div><div class="v" id="rM">–</div><div class="s" id="rMs">gegenüber nur Batterie</div></div>
+      <div class="res"><div class="k">Zyklen pro Tag</div><div class="v" id="rC">2</div><div class="s">Batterie 2, mit Schwungmasse 3</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 style="font-size:15px;margin-bottom:6px">Annahmen dieser Beispielrechnung</h2>
+    <ul class="assump">
+      <li>Die Preiskurve ist <strong>simuliert</strong> (typischer Tagesverlauf mit Mittagstief, Abendspitze und Zacken im 15-Minuten-Raster), keine echten Börsendaten. Mit einer eigenen CSV rechnet der Rechner mit Ihren Werten.</li>
+      <li>Die Auswahl des Brokers ordnet nur Ihre Messkurve zu. Sie sagt nichts über die Leistung eines Anbieters aus.</li>
+      <li>Setpoint: positiv bedeutet Einspeisen bzw. Verkaufen, negativ bedeutet Laden aus dem Netz bei günstigen Preisen. Im Intraday-Handel wird er im 15-Minuten-Takt angepasst, für Systemdienstleistungen auch deutlich schneller. Das System gleicht den Setpoint dauernd mit dem Ladestand (SoC) ab, damit die Batterie nicht überladen oder tiefentladen wird.</li>
+      <li>Die Batterie fährt höchstens 2 volle Zyklen pro Tag (Wirkungsgrad 88 % über den Zyklus). Die Schwungmasse fährt einen zusätzlichen Zyklus mit der eingestellten Energie (Wirkungsgrad 95 %).</li>
+      <li>Beispielrechnung, keine Zusage künftiger Erträge. Die endgültige Rechenregel folgt mit realen Messkurven.</li>
+    </ul>
+  </div>
+</section>
+</div></main>
+
+<footer><div class="wrap">Konzeptdarstellung, Zahlen sind Beispiele und keine Zusage. &middot; <a href="impressum.html">Impressum</a> &middot; <a href="datenschutz.html">Datenschutz</a></div></footer>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var N = 96;                       // 15-Minuten-Schritte
+  var ETA_B = 0.88, ETA_F = 0.95;   // Wirkungsgrad ueber den Zyklus
+  var seed = 20261003;
+  var state = { prices: [], battSet: null, uploaded: false, uploadedSet: false, res: null, reveal: 1 };
+
+  /* ---------- Simulierte Preiskurve (zackig, 15 min) ---------- */
+  function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function gauss(h, m, s) { var d = (h - m) / s; return Math.exp(-d * d / 2); }
+  function makePrices(sd) {
+    var r = rng(sd), out = [], ar = 0, spikeAt = 70 + Math.floor(r() * 12), spike = 40 + r() * 70;
+    var eve = 150 + r() * 60, noon = 55 + r() * 40, base = 62 + r() * 18;
+    for (var q = 0; q < N; q++) {
+      var h = q / 4;
+      var v = base + 48 * gauss(h, 7.7, 1.5) + eve * gauss(h, 19.6, 1.9) - noon * gauss(h, 13.2, 2.7);
+      ar = 0.55 * ar + (r() - 0.5) * 26;            // zackiges Rauschen
+      v += ar + ((q % 4) - 1.5) * 3.2 * (r() > 0.4 ? 1 : -1); // Saegezahn an Stundenwechseln
+      if (q === spikeAt || q === spikeAt + 1) v += spike * (q === spikeAt ? 1 : 0.55);
+      out.push(Math.round(v * 100) / 100);
+    }
+    return out;
+  }
+
+  /* ---------- Optimierung: DP ueber Ladestand und Entlade-Menge ---------- */
+  // Einheit u = 15 min bei voller Leistung (0,25 MWh je MW). Ergebnis: Aktion je Viertelstunde (-1 laden, 0, +1 entladen)
+  function optimise(prices, S, cap, eta) {
+    var D = cap, e1 = Math.sqrt(eta), NEG = -1e18;
+    var V = new Array((N + 1) * (S + 1) * (D + 1)).fill(NEG);
+    var A = new Int8Array((N + 1) * (S + 1) * (D + 1));
+    function ix(t, s, d) { return (t * (S + 1) + s) * (D + 1) + d; }
+    V[ix(0, 0, 0)] = 0;
+    for (var t = 0; t < N; t++) {
+      var p = prices[t] * 0.25;
+      for (var s = 0; s <= S; s++) for (var d = 0; d <= D; d++) {
+        var cur = V[ix(t, s, d)]; if (cur === NEG) continue;
+        // nichts tun
+        if (cur > V[ix(t + 1, s, d)]) { V[ix(t + 1, s, d)] = cur; A[ix(t + 1, s, d)] = 0; }
+        // laden
+        if (s < S) { var vc = cur - p / e1; if (vc > V[ix(t + 1, s + 1, d)]) { V[ix(t + 1, s + 1, d)] = vc; A[ix(t + 1, s + 1, d)] = -1; } }
+        // entladen
+        if (s > 0 && d < D) { var vd = cur + p * e1; if (vd > V[ix(t + 1, s - 1, d + 1)]) { V[ix(t + 1, s - 1, d + 1)] = vd; A[ix(t + 1, s - 1, d + 1)] = 1; } }
+      }
+    }
+    var bs = 0, bd = 0, best = NEG;
+    for (var s2 = 0; s2 <= S; s2++) for (var d2 = 0; d2 <= D; d2++) { var v = V[ix(N, s2, d2)]; if (v > best) { best = v; bs = s2; bd = d2; } }
+    var act = new Array(N).fill(0), cs = bs, cd = bd;
+    for (var tt = N; tt > 0; tt--) {
+      var a = A[ix(tt, cs, cd)]; act[tt - 1] = a;
+      if (a === -1) cs -= 1; else if (a === 1) { cs += 1; cd -= 1; }
+    }
+    return act;
+  }
+  function revenue(prices, act, eta, P) {
+    var e1 = Math.sqrt(eta), sum = 0;
+    for (var t = 0; t < N; t++) { var a = act[t], p = prices[t] * 0.25 * P; sum += a > 0 ? p * a * e1 : p * a / e1; }
+    return sum;
+  }
+  function soc(act, S) { var s = 0, o = []; for (var t = 0; t < N; t++) { s -= act[t]; s = Math.max(0, Math.min(S, s)); o.push(s / S); } return o; }
+
+  function compute() {
+    var P = Math.max(0.1, +$('power').value || 1);
+    var dur = Math.max(1, Math.min(4, Math.round(+$('dur').value || 2)));
+    var fwh = Math.max(50, +$('fwe').value || 500) / 1000;   // MWh je MW
+    var S = dur * 4, Sf = Math.max(1, Math.round(fwh * 4));
+    var pr = state.prices;
+    var bAct;
+    if (state.uploadedSet && state.battSet) bAct = state.battSet;
+    else bAct = optimise(pr, S, 2 * S, ETA_B);               // 2 Zyklen Batterie
+    var fAct = optimise(pr, Sf, 1 * Sf, ETA_F);              // 1 Zusatzzyklus Schwungmasse
+    var rb = revenue(pr, bAct, ETA_B, P), rf = revenue(pr, fAct, ETA_F, P);
+    state.res = { bAct: bAct, fAct: fAct, rb: rb, rf: rf, S: S, Sf: Sf, P: P, soc: soc(bAct.map(function (x) { return Math.round(x); }), S) };
+  }
+
+  /* ---------- Darstellung ---------- */
+  var W = 960, X0 = 56, X1 = 940;
+  var panels = { price: { y0: 28, y1: 210 }, set: { y0: 262, y1: 410 }, soc: { y0: 450, y1: 500 } };
+  function xAt(q) { return X0 + (X1 - X0) * q / (N - 1); }
+  function fmt(v, d) { return v.toLocaleString('de-DE', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  function eur(v) { return fmt(v, 0) + ' €'; }
+
+  function draw() {
+    var pr = state.prices, svg = $('chart'), res = state.res, fly = $('fly').checked;
+    var mn = Math.min.apply(null, pr), mx = Math.max.apply(null, pr);
+    mn = Math.floor((Math.min(mn, 0) - 5) / 20) * 20; mx = Math.ceil((mx + 5) / 20) * 20;
+    var pp = panels.price, ps = panels.set, pc = panels.soc;
+    function yP(v) { return pp.y1 - (pp.y1 - pp.y0) * (v - mn) / (mx - mn); }
+    var h = '';
+    // Gitter und Achsen Preis
+    var step = (mx - mn) > 240 ? 60 : 40;
+    for (var v = Math.ceil(mn / step) * step; v <= mx; v += step) {
+      h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + yP(v) + '" y2="' + yP(v) + '" stroke="rgba(15,122,79,.12)"/>' +
+           '<text x="' + (X0 - 8) + '" y="' + (yP(v) + 4) + '" text-anchor="end" font-size="11" fill="#4f6157">' + v + '</text>';
+    }
+    h += '<text x="' + X0 + '" y="16" font-size="12" font-weight="600" fill="#132018">Preis €/MWh (15-Minuten-Raster)</text>';
+    if (mn < 0) h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + yP(0) + '" y2="' + yP(0) + '" stroke="#132018" stroke-opacity=".35"/>';
+    // Zeitachse
+    for (var hr = 0; hr <= 24; hr += 3) {
+      var xx = X0 + (X1 - X0) * (hr * 4) / (N - 1);
+      h += '<line x1="' + xx + '" x2="' + xx + '" y1="' + pp.y0 + '" y2="' + pc.y1 + '" stroke="rgba(15,122,79,.07)"/>' +
+           '<text x="' + xx + '" y="' + (pc.y1 + 16) + '" text-anchor="middle" font-size="11" fill="#4f6157">' + (hr < 10 ? '0' : '') + (hr === 24 ? '24' : hr) + ':00</text>';
+    }
+    // Lade-/Entlade-Baender im Preisbild
+    var bw = (X1 - X0) / (N - 1);
+    if (res) for (var q = 0; q < N; q++) {
+      var a = res.bAct[q];
+      if (a) h += '<rect x="' + (xAt(q) - bw / 2) + '" y="' + pp.y0 + '" width="' + bw + '" height="' + (pp.y1 - pp.y0) + '" fill="' + (a > 0 ? '#f59e0b' : '#38bdf8') + '" opacity=".14"/>';
+    }
+    // Zickzack-Linie
+    var pts = pr.map(function (p, q) { return xAt(q).toFixed(1) + ',' + yP(p).toFixed(1); }).join(' ');
+    h += '<polyline points="' + xAt(0) + ',' + pp.y1 + ' ' + pts + ' ' + xAt(N - 1) + ',' + pp.y1 + '" fill="rgba(15,122,79,.07)" stroke="none"/>';
+    h += '<polyline points="' + pts + '" fill="none" stroke="#0f7a4f" stroke-width="1.8" stroke-linejoin="round"/>';
+    // Setpoint-Balken
+    var P = res ? res.P : (+$('power').value || 1), kw = P * 1000;
+    var mid = (ps.y0 + ps.y1) / 2, half = (ps.y1 - ps.y0) / 2 - 6;
+    h += '<text x="' + X0 + '" y="' + (ps.y0 - 10) + '" font-size="12" font-weight="600" fill="#132018">Setpoint in kW (positiv = einspeisen/verkaufen, negativ = laden)</text>';
+    [-1, 0, 1].forEach(function (f) {
+      var yy = mid - f * half;
+      h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + yy + '" y2="' + yy + '" stroke="rgba(15,122,79,' + (f === 0 ? .35 : .12) + ')"/>' +
+           '<text x="' + (X0 - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="11" fill="#4f6157">' + fmt(f * kw, 0) + '</text>';
+    });
+    if (res) for (var q2 = 0; q2 < N; q2++) {
+      var b = res.bAct[q2];
+      if (b) h += '<rect x="' + (xAt(q2) - bw * .42) + '" y="' + (b > 0 ? mid - half * b : mid) + '" width="' + (bw * .84) + '" height="' + Math.abs(half * b) + '" fill="' + (b > 0 ? '#f59e0b' : '#38bdf8') + '"/>';
+      var f2 = fly ? res.fAct[q2] : 0;
+      if (f2) h += '<rect x="' + (xAt(q2) - bw * .2) + '" y="' + (f2 > 0 ? mid - half * f2 : mid) + '" width="' + (bw * .4) + '" height="' + Math.abs(half * f2) + '" fill="#16a34a"/>';
+    }
+    // Ladestand
+    h += '<text x="' + X0 + '" y="' + (pc.y0 - 8) + '" font-size="12" font-weight="600" fill="#132018">Ladestand Batterie</text>';
+    if (res) {
+      var sp = res.soc.map(function (s, q) { return xAt(q).toFixed(1) + ',' + (pc.y1 - (pc.y1 - pc.y0) * s).toFixed(1); }).join(' ');
+      h += '<polyline points="' + sp + '" fill="none" stroke="#6366f1" stroke-width="1.8"/>';
+    }
+    h += '<line x1="' + X0 + '" x2="' + X1 + '" y1="' + pc.y1 + '" y2="' + pc.y1 + '" stroke="rgba(15,122,79,.3)"/>';
+    // Hover-Linie und Abdeckung fuer die Berechnungs-Animation
+    h += '<line id="hov" x1="0" x2="0" y1="' + pp.y0 + '" y2="' + pc.y1 + '" stroke="#0284c7" stroke-width="1" visibility="hidden"/>';
+    h += '<rect id="cover" x="' + X0 + '" y="0" width="0" height="' + (pc.y1 + 24) + '" fill="#f3fbf6" opacity="0"/>';
+    svg.innerHTML = h;
+  }
+
+  function showResults() {
+    var res = state.res, fly = $('fly').checked;
+    $('cycles').textContent = 'Zyklen pro Tag: Batterie 2' + (fly ? ' + Schwungmasse 1 = 3' : '');
+    if (!res) return;
+    $('rB').textContent = eur(res.rb);
+    $('rF').textContent = fly ? eur(res.rf) : '–';
+    $('rM').textContent = fly ? '+' + eur(res.rf) : '–';
+    $('rMs').textContent = fly ? 'gegenüber nur Batterie (' + fmt(res.rb ? res.rf / res.rb * 100 : 0, 1) + ' %)' : 'Schwungmasse zuschalten';
+    $('rC').textContent = fly ? '3' : '2';
+  }
+
+  var rafId = 0;
+  function runCalc(animate) {
+    $('err').textContent = '';
+    compute(); draw(); showResults();
+    var cover = $('cover');
+    if (!animate || !cover || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    cancelAnimationFrame(rafId);
+    var t0 = performance.now(), dur = 2600, totalW = X1 - X0;
+    cover.setAttribute('opacity', '.97');
+    $('chart').querySelectorAll('rect[fill="#f59e0b"],rect[fill="#38bdf8"],rect[fill="#16a34a"]').forEach(function () {});
+    (function tick(now) {
+      var k = Math.min(1, (now - t0) / dur);
+      var w = totalW * (1 - k);
+      cover.setAttribute('x', X0 + totalW * k); cover.setAttribute('width', Math.max(0, w + 10));
+      if (k < 1) rafId = requestAnimationFrame(tick); else cover.setAttribute('opacity', '0');
+    })(t0);
+  }
+
+  /* ---------- CSV ---------- */
+  function num(s) { if (s == null) return NaN; s = String(s).trim().replace(/\s/g, ''); if (/,/.test(s) && !/\./.test(s)) s = s.replace(',', '.'); else s = s.replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'); return parseFloat(s); }
+  function parseCsv(text) {
+    var lines = text.replace(/\r/g, '').split('\n').filter(function (l) { return l.trim(); });
+    if (!lines.length) throw new Error('Die Datei ist leer.');
+    var del = (lines[0].match(/;/g) || []).length ? ';' : ((lines[0].match(/\t/g) || []).length ? '\t' : ',');
+    var rows = lines.map(function (l) { return l.split(del); });
+    if (isNaN(num(rows[0][1]))) rows.shift();                       // Kopfzeile
+    var prices = [], sets = [], hasSet = rows.length && rows[0].length > 2 && !isNaN(num(rows[0][2]));
+    rows.forEach(function (r) { var p = num(r[1]); if (!isNaN(p)) { prices.push(p); if (hasSet) sets.push(num(r[2])); } });
+    if (prices.length === 24) { prices = [].concat.apply([], prices.map(function (p) { return [p, p, p, p]; })); if (hasSet) sets = [].concat.apply([], sets.map(function (p) { return [p, p, p, p]; })); }
+    if (prices.length !== N) throw new Error('Erwartet werden 96 Zeilen (15 Minuten) oder 24 Zeilen (Stunden), gefunden: ' + prices.length + '.');
+    return { prices: prices, sets: hasSet ? sets : null };
+  }
+
+  /* ---------- Hover ---------- */
+  function onMove(ev) {
+    var svg = $('chart'), r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * W;
+    var q = Math.round((x - X0) / (X1 - X0) * (N - 1)); if (q < 0 || q > N - 1) return;
+    var hov = $('hov'); hov.setAttribute('x1', xAt(q)); hov.setAttribute('x2', xAt(q)); hov.setAttribute('visibility', 'visible');
+    var hh = Math.floor(q / 4), mm = (q % 4) * 15, res = state.res, P = res ? res.P : (+$('power').value || 1);
+    var t = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+    var s = t + ' Uhr · Preis ' + fmt(state.prices[q], 2) + ' €/MWh';
+    if (res) {
+      var b = res.bAct[q] * P * 1000, f = $('fly').checked ? res.fAct[q] * P * 1000 : 0;
+      s += ' · Setpoint Batterie ' + (b > 0 ? '+' : '') + fmt(b, 0) + ' kW';
+      if ($('fly').checked) s += ' · Schwungmasse ' + (f > 0 ? '+' : '') + fmt(f, 0) + ' kW';
+    }
+    $('status').textContent = s;
+  }
+
+  /* ---------- Start ---------- */
+  state.prices = makePrices(seed);
+  $('newday').addEventListener('click', function () { seed += 7919; state.prices = makePrices(seed); state.uploaded = false; state.uploadedSet = false; state.battSet = null; $('file').value = ''; runCalc(false); });
+  $('calc').addEventListener('click', function () { runCalc(true); });
+  $('fly').addEventListener('change', function () { draw(); showResults(); });
+  ['power', 'dur', 'fwe'].forEach(function (id) { $(id).addEventListener('change', function () { runCalc(false); }); });
+  $('broker').addEventListener('change', function () { $('status').textContent = 'Messkurve wird dem Broker „' + $('broker').value + '" zugeordnet (nur Beschriftung).'; });
+  $('file').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      try {
+        var d = parseCsv(String(rd.result));
+        state.prices = d.prices; state.uploaded = true;
+        var P = Math.max(0.1, +$('power').value || 1);
+        if (d.sets) { state.uploadedSet = true; state.battSet = d.sets.map(function (k) { return Math.max(-1, Math.min(1, k / (P * 1000))); }); } else { state.uploadedSet = false; state.battSet = null; }
+        runCalc(true);
+        $('status').textContent = 'Eigene Messkurve geladen (' + f.name + '), Broker: ' + $('broker').value + '. Die Datei bleibt auf diesem Gerät.';
+      } catch (er) { $('err').textContent = er.message; }
+    };
+    rd.readAsText(f);
+  });
+  $('chart').addEventListener('mousemove', onMove);
+  $('chart').addEventListener('touchmove', function (e) { if (e.touches[0]) onMove(e.touches[0]); }, { passive: true });
+  runCalc(false);
+})();
+</script>
+</body>
+</html>
