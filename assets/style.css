@@ -126,3 +126,16 @@ footer a{color:var(--muted);text-decoration:underline}
 .page h2{font-size:16px;margin:26px 0 6px}
 .page p{margin:0 0 8px;color:var(--muted)}
 .pager{margin:36px 0;font-size:14px}
+
+/* ---------- Umschaltleiste: BESS-Plattform | Wiki | Video-Wiki (gemeinsam fuer die drei Seiten) ---------- */
+.sitebar{position:sticky;top:0;z-index:31;height:34px;background:#0b1f17;color:#cfe8dc;border-bottom:1px solid rgba(34,197,94,.35);transition:transform .8s var(--ease) .9s,opacity .6s .9s}
+.sitebar .in{max-width:1040px;height:100%;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.sitebar .lbl{opacity:.7;letter-spacing:.06em;text-transform:uppercase;font-size:11px;white-space:nowrap}
+.sitebar nav{display:flex;gap:4px}
+.sitebar a{color:#cfe8dc;padding:4px 12px;border-radius:999px;white-space:nowrap}
+.sitebar a:hover{background:rgba(255,255,255,.1);text-decoration:none}
+.sitebar a[aria-current="page"]{background:var(--green);color:#052e1a;font-weight:700}
+.topnav{top:34px}
+html.intro-on .sitebar{transform:translateY(-110%);opacity:0}
+html.docking .sitebar{transform:none;opacity:1}
+@media (max-width:560px){.sitebar .lbl{display:none}.sitebar .in{justify-content:center}.sitebar a{padding:4px 9px}}
